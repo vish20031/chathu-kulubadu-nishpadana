@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spice World</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #fff8e1;
+    }
+
+    header {
+      background-color: #8d6e63;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    nav {
+      background-color: #a1887f;
+      display: flex;
+      justify-content: center;
+    }
+
+    nav a {
+      padding: 15px 20px;
+      display: block;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      background-color: #6d4c41;
+    }
+
+    .section {
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .active {
+      display: block;
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .product-card {
+      background: #fbe9e7;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .product-card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    form {
+      max-width: 400px;
+      margin: auto;
+      background: #fff3e0;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      background-color: #8d6e63;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #6d4c41;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Spice World</h1>
+    <p>සුවඳ සහ රස එක් කරමින් ඔබට!</p>
+  </header>
+
+  <nav>
+    <a href="#" onclick="showSection('home')">මුල් පිටුව</a>
+    <a href="#" onclick="showSection('products')">නිෂ්පාදන</a>
+    <a href="#" onclick="showSection('contact')">අපව සම්බන්ධ කරන්න</a>
+  </nav>
+
+  <div id="home" class="section active">
+    <h2>අපි ගැන</h2>
+    <p>Spice World යනු ශ්‍රී ලංකාවේ නිශ්පාදිත උසස් තත්ත්වයේ කුලුබඩු විකිණීම සඳහා පදනම් වූ ව්‍යාපාරයකි. අපගේ කුලුබඩු විශේෂත්වය වන්නේ පාරිසරික හිතකාමී ක්‍රම මඟින් නිෂ්පාදනය කිරීමය.</p>
+  </div>
+
+  <div id="products" class="section">
+    <h2>අපගේ නිෂ්පාදන</h2>
+    <div class="products">
+      <div class="product-card">
+        <img src="https://via.placeholder.com/200x150?text=Chili+Powder" alt="Chili Powder">
+        <h3>මිරිස් කුඩු</h3>
+        <p>100% ශ්‍රී ලාංකීය රසය සහ උණුසුම.</p>
+      </div>
+      <div class="product-card">
+        <img src="https://via.placeholder.com/200x150?text=Turmeric" alt="Turmeric">
+        <h3>කහ</h3>
+        <p>නිසි වාසි සහිත ස්වාභාවික කහ කුඩු.</p>
+      </div>
+      <div class="product-card">
+        <img src="https://via.placeholder.com/200x150?text=Curry+Powder" alt="Curry Powder">
+        <h3>කරි කුඩු</h3>
+        <p>වෙනස් කුලුබඩු මිශ්‍රණයකින් සැදුම්ලත්.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="contact" class="section">
+    <h2>අපව සම්බන්ධ කරන්න</h2>
+    <form onsubmit="submitForm(event)">
+      <input type="text" placeholder="ඔබගේ නම" required>
+      <input type="email" placeholder="ඔබගේ ඊමේල්" required>
+      <textarea placeholder="පණිවිඩය" required></textarea>
+      <button type="submit">යවන්න</button>
+    </form>
+  </div>
+
+  <script>
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(sec => {
+        sec.classList.remove('active');
+      });
+      document.getElementById(sectionId).classList.add('active');
+    }
+
+    function submitForm(e) {
+      e.preventDefault();
+      alert("ඔබගේ පණිවිඩය යවා ඇත! ස්තුතියි.");
+      e.target.reset();
+    }
+  </script>
+
+</body>
+</html>
