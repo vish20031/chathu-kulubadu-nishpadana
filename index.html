@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chathu Kulubadu Nishpadana - Premium Sri Lankan Spices</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+  <script src="https://unpkg.com/scrollreveal"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&display=swap');
+    
+    body {
+      font-family: 'Noto Sans Sinhala', sans-serif;
+      scroll-behavior: smooth;
+    }
+    
+    .hero-gradient {
+      background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .main-content {
+      flex: 1;
+    }
+    
+    .spice-card:hover .spice-overlay {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .nav-link {
+      position: relative;
+    }
+    
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: white;
+      transition: width 0.3s ease;
+    }
+    
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    
+    .floating {
+      animation: floating 3s ease-in-out infinite;
+    }
+    
+    @keyframes floating {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+
+    #spice-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+      opacity: 0.3;
+      width: 100%;
+      height: 100%;
+    }
+
+    .threejs-container {
+      position: relative;
+      height: 300px;
+      width: 300px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body class="bg-amber-50 text-gray-800 flex flex-col min-h-screen">
+
+  <!-- Loading Screen -->
+  <div id="loader" class="fixed inset-0 bg-amber-700 z-50 flex flex-col items-center justify-center transition-opacity duration-500">
+    <div class="w-24 h-24 border-4 border-amber-300 border-t-white rounded-full animate-spin mb-4"></div>
+    <p class="text-white text-xl font-semibold">පූරණය වෙමින්...</p>
+  </div>
+
+  <!-- Floating Navigation -->
+  <nav class="fixed top-0 left-0 right-0 bg-amber-800/90 backdrop-blur-md z-40 shadow-lg">
+    <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+      <a href="#" onclick="showSection('home')" class="text-2xl font-bold text-white flex items-center">
+        <span class="mr-2">🌶</span> Chathu Kulubadu
+      </a>
+      
+      <div class="hidden md:flex space-x-8">
+        <a href="#" onclick="showSection('home')" class="nav-link text-white hover:text-amber-200 transition">මුල් පිටුව</a>
+        <a href="#" onclick="showSection('about')" class="nav-link text-white hover:text-amber-200 transition">අපි ගැන</a>
+        <a href="#" onclick="showSection('products')" class="nav-link text-white hover:text-amber-200 transition">නිෂ්පාදන</a>
+        <a href="#" onclick="showSection('process')" class="nav-link text-white hover:text-amber-200 transition">නිෂ්පාදන ක්‍රියාවලිය</a>
+        <a href="#" onclick="showSection('contact')" class="nav-link text-white hover:text-amber-200 transition">සම්බන්ධ වන්න</a>
+      </div>
+      
+      <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-amber-700 px-6 py-3">
+      <a href="#" onclick="showSection('home')" class="block py-2 text-white hover:text-amber-200 transition">මුල් පිටුව</a>
+      <a href="#" onclick="showSection('about')" class="block py-2 text-white hover:text-amber-200 transition">අපි ගැන</a>
+      <a href="#" onclick="showSection('products')" class="block py-2 text-white hover:text-amber-200 transition">නිෂ්පාදන</a>
+      <a href="#" onclick="showSection('process')" class="block py-2 text-white hover:text-amber-200 transition">නිෂ්පාදන ක්‍රියාවලිය</a>
+      <a href="#" onclick="showSection('contact')" class="block py-2 text-white hover:text-amber-200 transition">සම්බන්ධ වන්න</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-content pt-16">
+    <!-- Hero Section -->
+    <section id="home" class="min-h-[calc(100vh-4rem)] hero-gradient flex items-center justify-center relative overflow-hidden">
+      <div id="spice-canvas"></div>
+      
+      <div class="container mx-auto px-6 z-10 py-12">
+        <div class="flex flex-col md:flex-row items-center">
+          <div class="md:w-1/2 text-center md:text-left mb-10 md:mb-0">
+            <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">ශ්‍රී ලංකාවේ රසය</h1>
+            <p class="text-xl text-amber-100 mb-8">100% ස්වාභාවික, කාබනික හා පාරිසරික මිත්‍රශීලී කුලුබඩු නිෂ්පාදන</p>
+            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center md:justify-start">
+              <button onclick="showSection('products')" class="bg-white text-amber-800 px-8 py-3 rounded-full font-semibold hover:bg-amber-100 transition shadow-lg hover:shadow-xl">
+                අපගේ නිෂ්පාදන
+              </button>
+              <button onclick="showSection('contact')" class="bg-transparent border-2 border-white text-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-amber-800 transition shadow-lg hover:shadow-xl">
+                ගනුදෙනු කරන්න
+              </button>
+            </div>
+          </div>
+          
+          <div class="md:w-1/2 flex justify-center mt-8 md:mt-0">
+            <div class="threejs-container">
+              <!-- 3D Spice Model Container -->
+              <div id="spice-model"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="absolute bottom-10 left-0 right-0 flex justify-center">
+        <a href="#about" onclick="showSection('about')" class="text-white animate-bounce">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+          </svg>
+        </a>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-white">
+      <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-5xl font-bold text-amber-800 mb-4">අපි ගැන</h2>
+          <div class="w-24 h-1 bg-amber-600 mx-auto"></div>
+        </div>
+        
+        <div class="flex flex-col md:flex-row items-center mb-16">
+          <div class="md:w-1/2 mb-10 md:mb-0 md:pr-10">
+            <h3 class="text-2xl font-semibold text-amber-700 mb-4">අපගේ ඉතිහාසය</h3>
+            <p class="text-gray-700 mb-6 leading-relaxed">
+              Chathu Kulubadu Nishpadana 2005 වර්ෂයේදී කුඩා පවුල් ව්‍යාපාරයක් ලෙස ආරම්භ කරන ලදී. අද වනවිට අපි ශ්‍රී ලංකාවේ ප්‍රමුඛ කුලුබඩු නිෂ්පාදකයෙකු ලෙස ස්ථාපිත වී ඇත. අපගේ නිෂ්පාදන ජාත්‍යන්තරව පිළිගැනීමට ලක්ව ඇති අතර, අපගේ ගුණාත්මකභාවය හා පාරිසරික අභිලාෂයන් වෙනුවෙන් අපි ප්‍රසිද්ධියක් ඉසිලීමට සමත් වී ඇත.
+            </p>
+            <p class="text-gray-700 leading-relaxed">
+              අපගේ අඛණ්ඩ පර්යේෂණ හා සංවර්ධන වැඩසටහන් මඟින් නව නිෂ්පාදන හඳුන්වාදීමට හැකිවීම අපගේ සාර්ථකත්වයේ රහසයි.
+            </p>
+          </div>
+          <div class="md:w-1/2 bg-amber-100 rounded-xl p-8 shadow-lg">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-white p-6 rounded-lg shadow text-center">
+                <div class="text-4xl font-bold text-amber-700 mb-2">17+</div>
+                <div class="text-gray-600">වසර අත්දැකීම</div>
+              </div>
+              <div class="bg-white p-6 rounded-lg shadow text-center">
+                <div class="text-4xl font-bold text-amber-700 mb-2">50+</div>
+                <div class="text-gray-600">නිෂ්පාදන</div>
+              </div>
+              <div class="bg-white p-6 rounded-lg shadow text-center">
+                <div class="text-4xl font-bold text-amber-700 mb-2">100%</div>
+                <div class="text-gray-600">කාබනික</div>
+              </div>
+              <div class="bg-white p-6 rounded-lg shadow text-center">
+                <div class="text-4xl font-bold text-amber-700 mb-2">12</div>
+                <div class="text-gray-600">ජාතීන්ට අපනයනය</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex flex-col md:flex-row items-center mt-16">
+          <div class="md:w-1/2 mb-10 md:mb-0 order-2 md:order-1">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="bg-amber-50 p-6 rounded-lg shadow-md border-l-4 border-amber-600">
+                <h4 class="text-xl font-semibold text-amber-800 mb-3">අපගේ දැක්ම</h4>
+                <p class="text-gray-700">
+                  ලෝකයේ හොඳම කුලුබඩු නිෂ්පාදකයා බවට පත්වීම සහ ශ්‍රී ලංකාවේ කුලුබඩු වල ගුණාත්මකභාවය ගෝලීය වෙළඳපොලේ ඉහළට ගෙන ඒම.
+                </p>
+              </div>
+              <div class="bg-amber-50 p-6 rounded-lg shadow-md border-l-4 border-amber-600">
+                <h4 class="text-xl font-semibold text-amber-800 mb-3">අපගේ මෙහෙවර</h4>
+                <p class="text-gray-700">
+                  පාරිසරික සුරැකුම් ක්‍රම මඟින් ගුණාත්මක හා රසවත් කුලුබඩු නිෂ්පාදනය කිරීම, ගොවීන්ගේ ජීවන මට්ටම ඉහළ නැංවීම සහ පාරිසරික සංරක්ෂණයට දායක වීම.
+                </p>
+              </div>
+              <div class="bg-amber-50 p-6 rounded-lg shadow-md border-l-4 border-amber-600">
+                <h4 class="text-xl font-semibold text-amber-800 mb-3">අපගේ අගයන්</h4>
+                <p class="text-gray-700">
+                  ගුණාත්මකභාවය, නවෝත්පාදනය, පාරිසරික ගැළපීම, සාධාරණ භාවය සහ ප්‍රජා සංවර්ධනය යනාදී අගයන් මත අපගේ ව්‍යාපාරය පදනම් වී ඇත.
+                </p>
+              </div>
+              <div class="bg-amber-50 p-6 rounded-lg shadow-md border-l-4 border-amber-600">
+                <h4 class="text-xl font-semibold text-amber-800 mb-3">අපගේ ප්‍රතිඥා</h4>
+                <p class="text-gray-700">
+                  අපගේ ගනුදෙනුකරුවන්ට උසස් තත්ත්වයේ, රසායනික රහිත හා පාරිසරික මිත්‍රශීලී නිෂ්පාදන ස්ථාවර ලෙස සැපයීමට අපි ප්‍රතිඥා දෙන්නෙමු.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="md:w-1/2 md:pl-10 order-1 md:order-2">
+            <h3 class="text-2xl font-semibold text-amber-700 mb-4">අපගේ විශේෂත්වය</h3>
+            <p class="text-gray-700 mb-6 leading-relaxed">
+              අපගේ නිෂ්පාදනවල විශේෂත්වය නම් ඒවායේ ස්වාභාවික ගුණාත්මකභාවය හා රසය සුරැකීමයි. අපි භාවිතා කරන සියලුම ගොවිපල කෘෂිකර්මාන්තයට අනුගත වන අතර, අපගේ කුලුබඩු වලට කිසිදු කෘතිම රසකාරක, වර්ණක හෝ සංරක්ෂණ පදාර්ථ එකතු නොකෙරේ.
+            </p>
+            <div class="bg-amber-100 rounded-lg p-6 shadow-inner">
+              <h4 class="text-lg font-semibold text-amber-800 mb-3">සහතික කිරීම්</h4>
+              <div class="flex flex-wrap gap-3">
+                <span class="bg-white px-4 py-2 rounded-full text-sm font-medium text-amber-800 shadow">ජාත්‍යන්තර කාබනික සහතිකය</span>
+                <span class="bg-white px-4 py-2 rounded-full text-sm font-medium text-amber-800 shadow">ISO 22000:2018</span>
+                <span class="bg-white px-4 py-2 rounded-full text-sm font-medium text-amber-800 shadow">HACCP</span>
+                <span class="bg-white px-4 py-2 rounded-full text-sm font-medium text-amber-800 shadow">EU Organic</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Products Section -->
+    <section id="products" class="py-20 bg-amber-50">
+      <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-5xl font-bold text-amber-800 mb-4">අපගේ නිෂ්පාදන</h2>
+          <p class="text-xl text-gray-600 max-w-2xl mx-auto">ස්වාභාවික රසය හා සුවඳ සුරැකූ උසස් තත්ත්වයේ කුලුබඩු</p>
+          <div class="w-24 h-1 bg-amber-600 mx-auto mt-4"></div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          <!-- Product 1 -->
+          <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 spice-card">
+            <div class="h-48 bg-amber-200 flex items-center justify-center relative">
+              <div class="text-6xl">🌶</div>
+              <div class="spice-overlay absolute inset-0 bg-amber-800/80 flex items-center justify-center opacity-0 transition duration-300 transform translate-y-4">
+                <button class="text-white border-2 border-white px-6 py-2 rounded-full hover:bg-white hover:text-amber-800 transition">තවත් බලන්න</button>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">මිරිස් කුඩු</h3>
+              <p class="text-gray-600 mb-4">100% ස්වදේශීයව නිෂ්පාදනය කරන ලද, උසස් තත්ත්වයේ මිරිස් කුඩු.</p>
+              <div class="flex justify-between items-center">
+                <span class="text-amber-700 font-bold">රු. 450.00</span>
+                <button class="text-sm bg-amber-600 text-white px-4 py-2 rounded-full hover:bg-amber-700 transition">ඇණවුම් කරන්න</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Product 2 -->
+          <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 spice-card">
+            <div class="h-48 bg-amber-100 flex items-center justify-center relative">
+              <div class="text-6xl">🟨</div>
+              <div class="spice-overlay absolute inset-0 bg-amber-800/80 flex items-center justify-center opacity-0 transition duration-300 transform translate-y-4">
+                <button class="text-white border-2 border-white px-6 py-2 rounded-full hover:bg-white hover:text-amber-800 transition">තවත් බලන්න</button>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">කහ කුඩු</h3>
+              <p class="text-gray-600 mb-4">සෞඛ්‍යයට හිතකර සහ රසවත් කහ කුඩු - කිසිඳු රසායනිකයෙකු නොමැතිව.</p>
+              <div class="flex justify-between items-center">
+                <span class="text-amber-700 font-bold">රු. 550.00</span>
+                <button class="text-sm bg-amber-600 text-white px-4 py-2 rounded-full hover:bg-amber-700 transition">ඇණවුම් කරන්න</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Product 3 -->
+          <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 spice-card">
+            <div class="h-48 bg-amber-50 flex items-center justify-center relative">
+              <div class="text-6xl">🧂</div>
+              <div class="spice-overlay absolute inset-0 bg-amber-800/80 flex items-center justify-center opacity-0 transition duration-300 transform translate-y-4">
+                <button class="text-white border-2 border-white px-6 py-2 rounded-full hover:bg-white hover:text-amber-800 transition">තවත් බලන්න</button>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">කරි කුඩු මිශ්‍රණ</h3>
+              <p class="text-gray-600 mb-4">රසවින්දනයක් සඳහා අපගේ විශේෂිත කුලුබඩු මිශ්‍රණය ඔබට!</p>
+              <div class="flex justify-between items-center">
+                <span class="text-amber-700 font-bold">රු. 650.00</span>
+                <button class="text-sm bg-amber-600 text-white px-4 py-2 rounded-full hover:bg-amber-700 transition">ඇණවුම් කරන්න</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Product 4 -->
+          <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 spice-card">
+            <div class="h-48 bg-amber-200 flex items-center justify-center relative">
+              <div class="text-6xl">🍃</div>
+              <div class="spice-overlay absolute inset-0 bg-amber-800/80 flex items-center justify-center opacity-0 transition duration-300 transform translate-y-4">
+                <button class="text-white border-2 border-white px-6 py-2 rounded-full hover:bg-white hover:text-amber-800 transition">තවත් බලන්න</button>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">කූරුඳු කුඩු</h3>
+              <p class="text-gray-600 mb-4">සුවඳවත් හා රසවත් කූරුඳු කුඩු, සෞඛ්‍ය ගුණයෙන් පිරිපුන්.</p>
+              <div class="flex justify-between items-center">
+                <span class="text-amber-700 font-bold">රු. 750.00</span>
+                <button class="text-sm bg-amber-600 text-white px-4 py-2 rounded-full hover:bg-amber-700 transition">ඇණවුම් කරන්න</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Product 5 -->
+          <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 spice-card">
+            <div class="h-48 bg-amber-100 flex items-center justify-center relative">
+              <div class="text-6xl">🍂</div>
+              <div class="spice-overlay absolute inset-0 bg-amber-800/80 flex items-center justify-center opacity-0 transition duration-300 transform translate-y-4">
+                <button class="text-white border-2 border-white px-6 py-2 rounded-full hover:bg-white hover:text-amber-800 transition">තවත් බලන්න</button>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">කොත්තමල්ලි කුඩු</h3>
+              <p class="text-gray-600 mb-4">සුවඳවත් කොත්තමල්ලි කුඩු, රසය ඉහළ නංවන අපගේ විශේෂ නිෂ්පාදනය.</p>
+              <div class="flex justify-between items-center">
+                <span class="text-amber-700 font-bold">රු. 600.00</span>
+                <button class="text-sm bg-amber-600 text-white px-4 py-2 rounded-full hover:bg-amber-700 transition">ඇණවුම් කරන්න</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Product 6 -->
+          <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 spice-card">
+            <div class="h-48 bg-amber-50 flex items-center justify-center relative">
+              <div class="text-6xl">🌿</div>
+              <div class="spice-overlay absolute inset-0 bg-amber-800/80 flex items-center justify-center opacity-0 transition duration-300 transform translate-y-4">
+                <button class="text-white border-2 border-white px-6 py-2 rounded-full hover:bg-white hover:text-amber-800 transition">තවත් බලන්න</button>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">කාරි මිශ්‍රණ</h3>
+              <p class="text-gray-600 mb-4">පරම්පරාගත රසය සහ සුවඳ සුරක්ෂිත කර ඇති විශේෂ කාරි මිශ්‍රණය.</p>
+              <div class="flex justify-between items-center">
+                <span class="text-amber-700 font-bold">රු. 500.00</span>
+                <button class="text-sm bg-amber-600 text-white px-4 py-2 rounded-full hover:bg-amber-700 transition">ඇණවුම් කරන්න</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center">
+          <button class="bg-amber-700 hover:bg-amber-800 text-white px-8 py-3 rounded-full font-semibold transition shadow-lg hover:shadow-xl">
+            සියලුම නිෂ්පාදන බලන්න
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Production Process Section -->
+    <section id="process" class="py-20 bg-white">
+      <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-5xl font-bold text-amber-800 mb-4">නිෂ්පාදන ක්‍රියාවලිය</h2>
+          <p class="text-xl text-gray-600 max-w-2xl mx-auto">කෘෂිකර්මාන්තයේ සිට ඔබේ මේසය දක්වා</p>
+          <div class="w-24 h-1 bg-amber-600 mx-auto mt-4"></div>
+        </div>
+        
+        <div class="relative">
+          <!-- Timeline -->
+          <div class="hidden md:block absolute left-1/2 h-full w-1 bg-amber-200 transform -translate-x-1/2"></div>
+          
+          <!-- Process Step 1 -->
+          <div class="flex flex-col md:flex-row items-center mb-16 process-step">
+            <div class="md:w-1/2 md:pr-10 mb-8 md:mb-0 text-right">
+              <h3 class="text-2xl font-semibold text-amber-700 mb-3">කෘෂිකර්මාන්තය</h3>
+              <p class="text-gray-700">
+                අපගේ කුලුබඩු ගොවිපල්වල කාබනික ක්‍රමවේදයන් භාවිතයෙන් වගා කරනු ලැබේ. රසායනික පොහොර හෝ පලිබෝධනාශක භාවිතයෙන් තොරව, ස්වාභාවික පොහොර හා ජීව විද්‍යාත්මක පාලන ක්‍රම භාවිතා කරමින් අපි අපගේ ගොවීන් සමඟ සහයෝගීතාවයෙන් කටයුතු කරමු.
+              </p>
+            </div>
+            <div class="md:w-1/2 md:pl-10 flex justify-center">
+              <div class="w-16 h-16 rounded-full bg-amber-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg">1</div>
+            </div>
+          </div>
+          
+          <!-- Process Step 2 -->
+          <div class="flex flex-col md:flex-row items-center mb-16 process-step">
+            <div class="md:w-1/2 order-2 md:order-1 md:pr-10 flex justify-center">
+              <div class="w-16 h-16 rounded-full bg-amber-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg">2</div>
+            </div>
+            <div class="md:w-1/2 order-1 md:order-2 md:pl-10 mb-8 md:mb-0 text-left">
+              <h3 class="text-2xl font-semibold text-amber-700 mb-3">සැකසීම</h3>
+              <p class="text-gray-700">
+                අපගේ නවීන කර්මාන්තශාලාවලදී, කුලුබඩු පරිශීලනය කර උසස් තාක්ෂණය මඟින් සැකසීම් ක්‍රියාවලිය සිදු කරනු ලැබේ. මෙම ක්‍රියාවලියේදී රසය, සුවඳ හා පෝෂණ ගුණ සුරක්ෂිත කර ගනු ලබන අතර, අන්තර්ජාතික සනීපාරක්ෂක ප්‍රමිතීන්ට අනුකූලව කටයුතු සිදු කරනු ලැබේ.
+              </p>
+            </div>
+          </div>
+          
+          <!-- Process Step 3 -->
+          <div class="flex flex-col md:flex-row items-center mb-16 process-step">
+            <div class="md:w-1/2 md:pr-10 mb-8 md:mb-0 text-right">
+              <h3 class="text-2xl font-semibold text-amber-700 mb-3">ගුණාත්මක පාලනය</h3>
+              <p class="text-gray-700">
+                සෑම නිෂ්පාදන තොගයක්ම අපගේ ගුණාත්මක පාලන පරීක්ෂණාගාරයේදී පරීක්ෂාවට ලක් කරනු ලැබේ. මෙහිදී රසායනික අපද්‍රව්‍ය, බැක්ටීරියා ගණන හා අනෙකුත් ගුණාත්මක පරාමිතීන් පරීක්ෂා කර බැලීම සිදු කරනු ලැබේ. අපගේ නිෂ්පාදන ISO, HACCP වැනි ජාත්‍යන්තර ප්‍රමිතීන්ට අනුකූල වේ.
+              </p>
+            </div>
+            <div class="md:w-1/2 md:pl-10 flex justify-center">
+              <div class="w-16 h-16 rounded-full bg-amber-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg">3</div>
+            </div>
+          </div>
+          
+          <!-- Process Step 4 -->
+          <div class="flex flex-col md:flex-row items-center mb-16 process-step">
+            <div class="md:w-1/2 order-2 md:order-1 md:pr-10 flex justify-center">
+              <div class="w-16 h-16 rounded-full bg-amber-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg">4</div>
+            </div>
+            <div class="md:w-1/2 order-1 md:order-2 md:pl-10 mb-8 md:mb-0 text-left">
+              <h3 class="text-2xl font-semibold text-amber-700 mb-3">ඇසුරුම් කිරීම</h3>
+              <p class="text-gray-700">
+                අපගේ නිෂ්පාදන පරිසර හිතකර ඇසුරුම් වල ඇසුරුම් කරනු ලැබේ. මෙම ඇසුරුම් තුළින් නිෂ්පාදනවල නැවුම් බව හා ගුණාත්මකභාවය දිගු කලක් පවත්වා ගත හැකිය. එසේම අපගේ ඇසුරුම් පරිසරයට හානි නොකරන ලෙස නිපදවා ඇති අතර, ප්‍රතිචක්රීකරණය කළ හැකි ද්‍රව්‍ය වලින් නිපදවා ඇත.
+              </p>
+            </div>
+          </div>
+          
+          <!-- Process Step 5 -->
+          <div class="flex flex-col md:flex-row items-center process-step">
+            <div class="md:w-1/2 md:pr-10 mb-8 md:mb-0 text-right">
+              <h3 class="text-2xl font-semibold text-amber-700 mb-3">බෙදා හැරීම</h3>
+              <p class="text-gray-700">
+                අපගේ නිෂ්පාදන ලොව පුරා බෙදා හරිනු ලැබේ. අපගේ කාර්යක්ෂම බෙදාහැරීමේ ජාලය මඟින් ඔබට අවශ්‍ය ඕනෑම ස්ථානයකට අපගේ නිෂ්පාදන ඉක්මනින් හා ආරක්ෂිතව ගෙන ඒමට අපි සමත් වී ඇත. අපගේ ගබඩා පහසුකම් නවීන තාක්ෂණයෙන් සමන්විත වන අතර, නිෂ්පාදනවල ගුණාත්මකභාවය පවත්වා ගැනීම සඳහා ප්‍රශස්ත තාපමාන හා ආර්ද්‍රතා පාලන පහසුකම් සවි කර ඇත.
+              </p>
+            </div>
+            <div class="md:w-1/2 md:pl-10 flex justify-center">
+              <div class="w-16 h-16 rounded-full bg-amber-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg">5</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-20 bg-amber-50">
+      <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-5xl font-bold text-amber-800 mb-4">අපගේ ගනුදෙනුකරුවන්ගේ අදහස්</h2>
+          <div class="w-24 h-1 bg-amber-600 mx-auto"></div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Testimonial 1 -->
+          <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 rounded-full bg-amber-200 flex items-center justify-center text-amber-800 font-bold mr-4">ස</div>
+              <div>
+                <h4 class="font-semibold">සුනිල් පෙරේරා</h4>
+                <p class="text-sm text-gray-500">හෝටල් හිමිකරු, කොළඹ</p>
+              </div>
+            </div>
+            <p class="text-gray-700 italic">
+              "අපගේ හෝටලය සඳහා වසර 5කට වැඩි කාලයක් තිස්සේ Chathu Kulubadu නිෂ්පාදන භාවිතා කරනවා. ඔවුන්ගේ කුලුබඩු වල ගුණාත්මකභාවය හා ස්ථාවර බව අපගේ ගනුදෙනුකරුවන්ගේ රසික බව වැඩි කිරීමට උපකාරී වී තිබෙනවා."
+            </p>
+            <div class="flex mt-4 text-amber-500">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+          </div>
+          
+          <!-- Testimonial 2 -->
+          <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 rounded-full bg-amber-200 flex items-center justify-center text-amber-800 font-bold mr-4">අ</div>
+              <div>
+                <h4 class="font-semibold">අනෝමා සිල්වා</h4>
+                <p class="text-sm text-gray-500">ගෘහණිය, මහනුවර</p>
+              </div>
+            </div>
+            <p class="text-gray-700 italic">
+              "Chathu Kulubadu කුලුබඩු භාවිතා කිරීමෙන් මගේ ගෙදර ආහාරවල රසය සැලකිය යුතු ලෙස වැඩි වී තිබෙනවා. රසායනික රහිත බව දැන ගැනීමෙන් මා හා මගේ පවුලේ සාමාජිකයන් සුවපහසුවෙන් ඒවා භාවිතා කළ හැකියි."
+            </p>
+            <div class="flex mt-4 text-amber-500">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+          </div>
+          
+          <!-- Testimonial 3 -->
+          <div class="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 rounded-full bg-amber-200 flex items-center justify-center text-amber-800 font-bold mr-4">ර</div>
+              <div>
+                <h4 class="font-semibold">රවින්ද්‍ර ජයසූරිය</h4>
+                <p class="text-sm text-gray-500">අපනයනකරු, දුම්බර</p>
+              </div>
+            </div>
+            <p class="text-gray-700 italic">
+              "මම Chathu Kulubadu නිෂ්පාදන යුරෝපයට අපනයනය කරනවා. ඔවුන්ගේ නිෂ්පාදනවල ගුණාත්මකභාවය හා සහතික කිරීම් නිසා ජාත්‍යන්තර වෙළඳපොලේ ඉහළ ඉල්ලුමක් ඇත. ඔවුන්ගේ වෘත්තීය භාවය හා නිෂ්පාදන ස්ථාවරත්වය අපගේ ව්‍යාපාරයේ සාර්ථකත්වයට විශාල දායකත්වයක් සපයා ඇත."
+            </p>
+            <div class="flex mt-4 text-amber-500">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-white">
+      <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+          <h2 class="text-3xl md:text-5xl font-bold text-amber-800 mb-4">අපව සම්බන්ධ වන්න</h2>
+          <p class="text-xl text-gray-600 max-w-2xl mx-auto">ඔබගේ ප්‍රශ්න හෝ අදහස් අපට යොමු කරන්න</p>
+          <div class="w-24 h-1 bg-amber-600 mx-auto mt-4"></div>
+        </div>
+        
+        <div class="flex flex-col md:flex-row">
+          <div class="md:w-1/2 mb-10 md:mb-0 md:pr-10">
+            <h3 class="text-2xl font-semibold text-amber-700 mb-6">අපගේ ලිපිනය</h3>
+            
+            <div class="space-y-6">
+              <div class="flex items-start">
+                <div class="bg-amber-100 p-3 rounded-full mr-4">
+                  <i class="fas fa-map-marker-alt text-amber-700"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-800">ප්‍රධාන කාර්යාලය</h4>
+                  <p class="text-gray-600">123 කුලුබඩු වීදිය, ගම්පහ, ශ්‍රී ලංකාව</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start">
+                <div class="bg-amber-100 p-3 rounded-full mr-4">
+                  <i class="fas fa-phone-alt text-amber-700"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-800">දුරකථන</h4>
+                  <p class="text-gray-600">077 123 4567 (විකුණුම්)<br>011 234 5678 (පරිපාලන)</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start">
+                <div class="bg-amber-100 p-3 rounded-full mr-4">
+                  <i class="fas fa-envelope text-amber-700"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-800">ඊමේල්</h4>
+                  <p class="text-gray-600">info@chathukulubadu.lk<br>sales@chathukulubadu.lk</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start">
+                <div class="bg-amber-100 p-3 rounded-full mr-4">
+                  <i class="fas fa-clock text-amber-700"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-800">කාර්යාල වේලාවන්</h4>
+                  <p class="text-gray-600">සඳුදා - සිකුරාදා: 8.30 AM - 5.00 PM<br>සෙනසුරාදා: 8.30 AM - 1.00 PM</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-10">
+              <h4 class="text-xl font-semibold text-amber-700 mb-4">සමාජ මාධ්‍ය</h4>
+              <div class="flex space-x-4">
+                <a href="#" class="bg-amber-100 w-10 h-10 rounded-full flex items-center justify-center text-amber-700 hover:bg-amber-200 transition">
+                  <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="#" class="bg-amber-100 w-10 h-10 rounded-full flex items-center justify-center text-amber-700 hover:bg-amber-200 transition">
+                  <i class="fab fa-instagram"></i>
+                </a>
+                <a href="#" class="bg-amber-100 w-10 h-10 rounded-full flex items-center justify-center text-amber-700 hover:bg-amber-200 transition">
+                  <i class="fab fa-linkedin-in"></i>
+                </a>
+                <a href="#" class="bg-amber-100 w-10 h-10 rounded-full flex items-center justify-center text-amber-700 hover:bg-amber-200 transition">
+                  <i class="fab fa-youtube"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <div class="md:w-1/2">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+              <h3 class="text-2xl font-semibold text-amber-700 mb-6">පණිවිඩයක් යවන්න</h3>
+              
+              <form onsubmit="submitForm(event)" class="space-y-4">
+                <div>
+                  <label for="name" class="block text-gray-700 mb-2">ඔබගේ නම</label>
+                  <input type="text" id="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                  <label for="email" class="block text-gray-700 mb-2">ඊමේල් ලිපිනය</label>
+                  <input type="email" id="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                  <label for="phone" class="block text-gray-700 mb-2">දුරකථන අංකය</label>
+                  <input type="tel" id="phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                  <label for="subject" class="block text-gray-700 mb-2">විෂය</label>
+                  <select id="subject" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                    <option>නිෂ්පාදන ගැන විමසීම</option>
+                    <option>ඇණවුම් ගැන විමසීම</option>
+                    <option>සේවා විමසීම</option>
+                    <option>වෙනත්</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label for="message" class="block text-gray-700 mb-2">පණිවිඩය</label>
+                  <textarea id="message" rows="4" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"></textarea>
+                </div>
+                
+                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 px-6 rounded-lg font-semibold transition shadow hover:shadow-md">
+                  පණිවිඩය යවන්න
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="py-12 bg-amber-800 text-white">
+      <div class="container mx-auto px-6 text-center">
+        <h3 class="text-2xl font-bold mb-4">අපගේ පුවත් පත්‍රයට ලියාපදිංචි වන්න</h3>
+        <p class="max-w-2xl mx-auto mb-6">අපගේ නවතම නිෂ්පාදන, විශේෂ දීමනා හා ප්‍රවෘත්ති ගැන දැනුවත් වීමට ඔබගේ ඊමේල් ලිපිනය ඇතුලත් කරන්න.</p>
+        
+        <form class="max-w-md mx-auto flex">
+          <input type="email" placeholder="ඔබගේ ඊමේල් ලිපිනය" required class="flex-grow px-4 py-3 rounded-l-lg focus:outline-none text-gray-800">
+          <button type="submit" class="bg-amber-600 hover:bg-amber-700 px-6 py-3 rounded-r-lg font-semibold transition">ලියාපදිංචි වන්න</button>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-amber-900 text-white pt-12 pb-6">
+    <div class="container mx-auto px-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <h4 class="text-xl font-bold mb-4">Chathu Kulubadu</h4>
+          <p class="text-amber-200">ශ්‍රී ලංකාවේ ප්‍රමුඛ කුලුබඩු නිෂ්පාදකයා, ගුණාත්මකභාවය හා පාරිසරික අභිලාෂයන් සඳහා ප්‍රසිද්ධ.</p>
+        </div>
+        
+        <div>
+          <h4 class="text-lg font-semibold mb-4">සබැඳි</h4>
+          <ul class="space-y-2">
+            <li><a href="#" onclick="showSection('home')" class="text-amber-200 hover:text-white transition">මුල් පිටුව</a></li>
+            <li><a href="#" onclick="showSection('about')" class="text-amber-200 hover:text-white transition">අපි ගැන</a></li>
+            <li><a href="#" onclick="showSection('products')" class="text-amber-200 hover:text-white transition">නිෂ්පාදන</a></li>
+            <li><a href="#" onclick="showSection('process')" class="text-amber-200 hover:text-white transition">නිෂ්පාදන ක්‍රියාවලිය</a></li>
+            <li><a href="#" onclick="showSection('contact')" class="text-amber-200 hover:text-white transition">සම්බන්ධ වන්න</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="text-lg font-semibold mb-4">නිෂ්පාදන</h4>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-amber-200 hover:text-white transition">මිරිස් කුඩු</a></li>
+            <li><a href="#" class="text-amber-200 hover:text-white transition">කහ කුඩු</a></li>
+            <li><a href="#" class="text-amber-200 hover:text-white transition">කරි මිශ්‍රණ</a></li>
+            <li><a href="#" class="text-amber-200 hover:text-white transition">කූරුඳු කුඩු</a></li>
+            <li><a href="#" class="text-amber-200 hover:text-white transition">කොත්තමල්ලි කුඩු</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="text-lg font-semibold mb-4">සම්බන්ධ වන්න</h4>
+          <address class="not-italic text-amber-200">
+            <p class="mb-2">123 කුලුබඩු වීදිය, ගම්පහ</p>
+            <p class="mb-2">ශ්‍රී ලංකාව</p>
+            <p class="mb-2">දුරකථන: 077 123 4567</p>
+            <p class="mb-2">ඊමේල්: info@chathukulubadu.lk</p>
+          </address>
+        </div>
+      </div>
+      
+      <div class="border-t border-amber-800 pt-6 flex flex-col md:flex-row justify-between items-center">
+        <p>&copy; 2025 Chathu Kulubadu Nishpadana. සියලු හිමිකම් ඇවිරිණි.</p>
+        <div class="flex space-x-4 mt-4 md:mt-0">
+          <a href="#" class="text-amber-200 hover:text-white transition">රහස්‍යතා ප්‍රතිපත්තිය</a>
+          <a href="#" class="text-amber-200 hover:text-white transition">නියම හා කොන්දේසි</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Back to Top Button -->
+  <button id="back-to-top" class="fixed bottom-6 right-6 bg-amber-700 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center opacity-0 invisible transition-all duration-300 hover:bg-amber-800">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+
+  <!-- JavaScript -->
+  <script>
+    // Loader
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        document.getElementById('loader').style.opacity = '0';
+        setTimeout(function() {
+          document.getElementById('loader').style.display = 'none';
+        }, 500);
+      }, 1000);
+    });
+
+    // Mobile Menu Toggle
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('hidden');
+    });
+
+    // Show Section
+    function showSection(id) {
+      // Hide mobile menu if open
+      document.getElementById('mobile-menu').classList.add('hidden');
+      
+      // Hide all sections
+      document.querySelectorAll('.section').forEach(sec => {
+        sec.classList.remove('active');
+      });
+      
+      // Show selected section
+      document.getElementById(id).classList.add('active');
+      
+      // Scroll to top
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+
+    // Form Submission
+    function submitForm(e) {
+      e.preventDefault();
+      // Here you would typically send the form data to a server
+      // For demo purposes, we'll just show an alert
+      alert("ඔබගේ පණිවිඩය සාර්ථකව යවා ඇත. ඔබව සම්බන්ධ වීමට අපි උත්සාහ කරමු. ස්තුතියි!");
+      e.target.reset();
+    }
+
+    // Back to Top Button
+    const backToTopButton = document.getElementById('back-to-top');
+    window.addEventListener('scroll', function() {
+      if (window.pageYOffset > 300) {
+        backToTopButton.classList.remove('opacity-0', 'invisible');
+        backToTopButton.classList.add('opacity-100', 'visible');
+      } else {
+        backToTopButton.classList.remove('opacity-100', 'visible');
+        backToTopButton.classList.add('opacity-0', 'invisible');
+      }
+    });
+
+    backToTopButton.addEventListener('click', function() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+
+    // p5.js Animation for Hero Section
+    const spiceP5 = new p5((sketch) => {
+      let particles = [];
+      
+      sketch.setup = () => {
+        const canvas = sketch.createCanvas(
+          document.getElementById('spice-canvas').offsetWidth,
+          document.getElementById('spice-canvas').offsetHeight
+        );
+        canvas.parent('spice-canvas');
+        
+        for (let i = 0; i < 50; i++) {
+          particles.push({
+            x: sketch.random(sketch.width),
+            y: sketch.random(sketch.height),
+            size: sketch.random(5, 15),
+            speed: sketch.random(0.5, 2),
+            type: Math.floor(sketch.random(4))
+          });
+        }
+      };
+      
+      sketch.draw = () => {
+        sketch.clear();
+        
+        particles.forEach(p => {
+          // Update position
+          p.y -= p.speed;
+          if (p.y < -20) {
+            p.y = sketch.height + 20;
+            p.x = sketch.random(sketch.width);
+          }
+          
+          // Draw particle
+          sketch.noStroke();
+          switch(p.type) {
+            case 0: // Chili
+              sketch.fill(200, 50, 50, 150);
+              sketch.ellipse(p.x, p.y, p.size);
+              break;
+            case 1: // Turmeric
+              sketch.fill(230, 190, 50, 150);
+              sketch.ellipse(p.x, p.y, p.size);
+              break;
+            case 2: // Cinnamon
+              sketch.fill(150, 100, 50, 150);
+              sketch.rect(p.x, p.y, p.size, p.size/3);
+              break;
+            case 3: // Pepper
+              sketch.fill(50, 50, 50, 150);
+              sketch.ellipse(p.x, p.y, p.size);
+              break;
+          }
+        });
+      };
+      
+      sketch.windowResized = () => {
+        sketch.resizeCanvas(
+          document.getElementById('spice-canvas').offsetWidth,
+          document.getElementById('spice-canvas').offsetHeight
+        );
+      };
+    });
+
+    // Three.js 3D Model for Hero Section
+    function initThreeJS() {
+      const container = document.getElementById('spice-model');
+      const width = container.offsetWidth;
+      const height = container.offsetHeight;
+      
+      // Scene
+      const scene = new THREE.Scene();
+      scene.background = null;
+      
+      // Camera
+      const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      camera.position.z = 5;
+      
+      // Renderer
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(width, height);
+      container.appendChild(renderer.domElement);
+      
+      // Lights
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);
+      
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(1, 1, 1);
+      scene.add(directionalLight);
+      
+      // Create a chili pepper
+      const createChili = () => {
+        const group = new THREE.Group();
+        
+        // Chili body
+        const chiliGeometry = new THREE.ConeGeometry(0.5, 2, 32);
+        const chiliMaterial = new THREE.MeshPhongMaterial({ 
+          color: 0xff3333,
+          shininess: 30
+        });
+        const chili = new THREE.Mesh(chiliGeometry, chiliMaterial);
+        chili.rotation.x = Math.PI;
+        group.add(chili);
+        
+        // Chili stem
+        const stemGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5, 16);
+        const stemMaterial = new THREE.MeshPhongMaterial({ color: 0x336633 });
+        const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+        stem.position.y = 1.1;
+        group.add(stem);
+        
+        return group;
+      };
+      
+      const chili = createChili();
+      scene.add(chili);
+      
+      // Animation
+      const animate = () => {
+        requestAnimationFrame(animate);
+        
+        chili.rotation.y += 0.01;
+        
+        renderer.render(scene, camera);
+      };
+      
+      animate();
+      
+      // Handle window resize
+      window.addEventListener('resize', () => {
+        const newWidth = container.offsetWidth;
+        const newHeight = container.offsetHeight;
+        
+        camera.aspect = newWidth / newHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(newWidth, newHeight);
+      });
+    }
+    
+    // Initialize Three.js after page load
+    window.addEventListener('load', initThreeJS);
+
+    // Scroll Reveal Animation
+    document.addEventListener('DOMContentLoaded', () => {
+      const sr = ScrollReveal({
+        origin: 'bottom',
+        distance: '60px',
+        duration: 1000,
+        delay: 200,
+        reset: true
+      });
+      
+      sr.reveal('.process-step', { interval: 200 });
+      sr.reveal('.spice-card', { interval: 100, origin: 'bottom', distance: '50px' });
+    });
+  </script>
+</body>
+</html>
